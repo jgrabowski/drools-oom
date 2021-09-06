@@ -1,0 +1,33 @@
+package rules;
+unit Test;
+
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.time.OffsetDateTime;
+import org.kie.kogito.rules.DataSource;
+import org.kie.kogito.rules.DataStream;
+import org.kie.kogito.rules.RuleUnitData;
+import pl.perfectsource.kogito.bugs.drools.Parent;
+import pl.perfectsource.kogito.bugs.drools.Child;
+import pl.perfectsource.kogito.bugs.drools.Nested;
+import pl.perfectsource.kogito.bugs.drools.Output;
+
+declare Test extends RuleUnitData
+    parents: DataStream<Parent> = DataSource.createStream()
+    output: DataStream<Output> = DataSource.createStream()
+end
+
+rule "Test rule" 
+when
+    $parent : /parents [ name == "Test" ];
+    List( size > 0 ) from collect ( Child( flag == true ) from $parent.children );
+    Set ( size <= 5 ) from accumulate ( Child ( $n : nested ) from $parent.children, collectSet($n) );
+then
+    output.append(Output.with(true));
+end
+
+query Test
+    out: /output
+end
